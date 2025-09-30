@@ -1,10 +1,10 @@
 import mysql from "mysql2/promise";
 
-const pool = mysql.createPool({
+export const pool = mysql.createPool({
   host: "localhost",
   user: "root",
   password: "",
-  database: "phone_store",
+  database: "phone_store_db",
 });
 
 export const testConection = async () => {
