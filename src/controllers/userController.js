@@ -1,6 +1,6 @@
 import * as userService from "../services/userService.js";
 
-export const getUsersHandler = async (req, res) => {
+export const getUsersHandler = async (req, res, next) => {
   try {
     const res = await userService.getAllUser();
 
@@ -9,11 +9,11 @@ export const getUsersHandler = async (req, res) => {
       data: res,
     });
   } catch (error) {
-    console.error(error);
+    next(error);
   }
 };
 
-export const getUserByIdHandler = async (req, res) => {
+export const getUserByIdHandler = async (req, res, next) => {
   try {
     const res = await userService.getUserById(req.params.id);
 
@@ -22,6 +22,6 @@ export const getUserByIdHandler = async (req, res) => {
       data: res,
     });
   } catch (error) {
-    console.error(error);
+    next(error);
   }
 };
