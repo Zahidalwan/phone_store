@@ -15,5 +15,9 @@ export const getUserById = async (id) => {
     [id]
   );
 
+  if (users.length === 0) {
+    throw new Error("User not found");
+  }
+
   return users[0];
 };
