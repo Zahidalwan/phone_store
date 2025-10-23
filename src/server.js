@@ -3,9 +3,10 @@ import { testConection } from "./config/db.js";
 import userRouter from "./routes/usersRouter.js";
 import productRouter from "./routes/productsRouter.js";
 import cors from "cors";
+import { errorMiddleware } from "./errorMiddlewares/errorMiddleware.js";
 
-app.use(cors());
 const app = express();
+app.use(cors());
 
 const PORT = 3000;
 app.use(express.json());

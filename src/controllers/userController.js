@@ -1,12 +1,13 @@
+import { response } from "express";
 import * as userService from "../services/userService.js";
 
 export const getUsersHandler = async (req, res, next) => {
   try {
-    const res = await userService.getAllUser();
+    const response = await userService.getAllUser();
 
     res.status(200).json({
       status: "success",
-      data: res,
+      data: response,
     });
   } catch (error) {
     next(error);
@@ -15,11 +16,52 @@ export const getUsersHandler = async (req, res, next) => {
 
 export const getUserByIdHandler = async (req, res, next) => {
   try {
-    const res = await userService.getUserById(req.params.id);
+    const { id } = req.params;
+    const response = await userService.getUserById(req.params.id);
 
     res.status(200).json({
       status: "success",
-      data: res,
+      data: response,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createUserHandler = async (req, res, next) => {
+  try {
+    const response = await userService.createUser(req.body);
+
+    res.status(201).json({
+      status: "success",
+      data: response,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserHandler = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const response = await userService.updateUser(req.params.id, req.body);
+
+    res.status(200).json({
+      status: "success",
+      data: response,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUserHandler = async (req, res, next) => {
+  try {
+    const response = await userService.deleteUser(req.params);
+
+    res.status(200).json({
+      status: "success",
+      data: response,
     });
   } catch (error) {
     next(error);
