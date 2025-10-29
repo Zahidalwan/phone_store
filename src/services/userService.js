@@ -1,4 +1,6 @@
 import { pool } from "../config/db.js";
+import { createUserSchema } from "../Validation/userValidation.js";
+import validate from "../Validation/validation.js";
 
 export const getAllUser = async () => {
   const [users] = await pool.query(
@@ -25,7 +27,10 @@ export const getUserById = async (id) => {
 };
 
 export const createUser = async (req) => {
-  const { fullname, username, email, password, role } = req;
+  const validated = validate(createUserSchema, req);
+
+  const { fullname, username, email, password, role } = validated;
+
   const [result] = await pool.query(
     "INSERT INTO users (fullname, username, email, password, role) VALUES (?, ?, ?, ?, ?)",
     [

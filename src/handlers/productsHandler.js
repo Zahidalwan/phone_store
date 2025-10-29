@@ -1,64 +1,56 @@
 import { pool } from "../config/db.js";
-// import bcrypt from "bcrypt";
 
-export const getAllProductHandler = async (req, res) => {
+export const getAllProductsHandler = async (req, res) => {
   try {
     const [products] = await pool.query(
-      `SELECT 
-        id, user_id, name, description, price, stock
-       FROM products`
+      "SELECT id, user_id, name, description, price, stock FROM products"
     );
 
     res.status(200).json({
       status: "success",
       data: products,
+      message: "Get all products succesfully",
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
+    console.log(error);
+    throw error;
   }
 };
 
-export const getProductByIdHandler = async (req, res) => {
-  const { id } = req.params;
+export const getProductsByIdHandler = async (req, res) => {
   try {
+    const { id } = req.params;
     const [products] = await pool.query(
-      `SELECT id, user_id, name, description, price, stock
-       FROM products WHERE id = ?`,
+      "SELECT id, user_id, name, description, price, stock FROM products WHERE id = ? ",
       [id]
     );
 
     if (products.length === 0) {
-      return res.status(404).json({
+      res.status(404).json({
         status: "fail",
-        message: "products not found",
+        message: "Product not found",
       });
     }
 
     res.status(200).json({
       status: "success",
       data: products[0],
+      message: "Get products by id succesfully",
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
+    console.log(error);
+    throw error;
   }
 };
 
 export const addProductHandler = async (req, res) => {
   const { user_id, name, description, price, stock } = req.body;
 
-  // Validasi input
-  if (!user_id || !user_id.trim()) {
+  // Validation
+  if (!user_id || isNaN(user_id)) {
     return res.status(400).json({
       status: "fail",
-      message: "user_id is required",
+      message: "user_id is required and must be a number",
     });
   }
 
@@ -69,16 +61,35 @@ export const addProductHandler = async (req, res) => {
     });
   }
 
-  try {
-    // Hash password kalau mau aman
-    // const hashedPassword = await bcrypt.hash(password, 10);
+  if (!description || !description.trim()) {
+    return res.status(400).json({
+      status: "fail",
+      message: "description is required",
+    });
+  }
 
+  if (price == null || isNaN(price) || price <= 0) {
+    return res.status(400).json({
+      status: "fail",
+      message: "price must be a positive number & cannot be empty",
+    });
+  }
+
+  if (stock == null || isNaN(stock) || stock < 0) {
+    return res.status(400).json({
+      status: "fail",
+      message: "stock must be a valid number",
+    });
+  }
+
+  try {
     const [result] = await pool.query(
-      "INSERT INTO products (user_id, name, description, price, stock ) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO products (user_id, name, description, price, stock) VALUES (?, ?, ?, ?, ?)",
       [user_id, name, description, price, stock]
     );
 
     const newProduct = {
+      id: result.insertId,
       user_id,
       name,
       description,
@@ -86,9 +97,9 @@ export const addProductHandler = async (req, res) => {
       stock,
     };
 
-    res.status(200).json({
+    res.status(201).json({
       status: "success",
-      message: "product created successfully",
+      message: "Product created successfully",
       data: newProduct,
     });
   } catch (error) {
@@ -103,56 +114,65 @@ export const addProductHandler = async (req, res) => {
 export const updateProductHandler = async (req, res) => {
   const { id } = req.params;
   const { user_id, name, description, price, stock } = req.body;
+
   try {
-    const [product] = await pool.query(
-      `UPDATE products SET user_id = ?, user_id = ?, description = ?, description = ?, stock = ?`,
+    const [product] = await pool.query("SELECT * FROM products WHERE id = ?", [
+      id,
+    ]);
+    if (product.length === 0) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Product not found",
+      });
+    }
+
+    await pool.query(
+      "UPDATE products SET user_id=?, name=?, description=?, price=?, stock=? WHERE id=?",
       [user_id, name, description, price, stock, id]
     );
 
-    const [userUpdate] = await pool.query(
-      `SELECT id, user_id, name, description, price, stock, FROM products WHERE id = ?`,
+    const [productUpdate] = await pool.query(
+      "SELECT id, user_id, name, description, price, stock FROM products WHERE id = ?",
       [id]
     );
 
-    const updateproduct = {
-      id: product.insertId,
-      user_id,
-      name,
-      description,
-      price,
-      stock,
-    };
-
     res.status(200).json({
       status: "success",
-      message: "product updated successfully",
-      data: userUpdate[0], // password tidak dikembalikan
+      message: "Product updated successfully",
+      data: productUpdate[0],
     });
   } catch (error) {
     console.error(error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
   }
 };
 
 export const deleteProductHandler = async (req, res) => {
-  const { id } = req.params;
   try {
-    const [deleteproduct] = await pool.query(
-      `DELETE FROM products WHERE id = ?`,
-      [id]
-    );
+    const { id } = req.params;
+    const [result] = await pool.query("DELETE FROM products WHERE id = ?", [
+      id,
+    ]);
 
-    if (deleteproduct.affectedRows === 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({
         status: "fail",
-        message: "product not found",
+        message: "Product not found",
       });
     }
 
     res.status(200).json({
       status: "success",
-      message: "product deleted successfully",
+      message: "Product deleted successfully",
     });
   } catch (error) {
     console.error(error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
   }
 };
