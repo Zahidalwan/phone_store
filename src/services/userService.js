@@ -1,5 +1,6 @@
 import { pool } from "../config/db.js";
 import { createUserSchema } from "../Validation/userValidation.js";
+import { updateUserSchema } from "../Validation/userValidation.js";
 import validate from "../Validation/validation.js";
 
 export const getAllUser = async () => {
@@ -53,7 +54,9 @@ export const createUser = async (req) => {
   return newUser;
 };
 
-export const updateUser = async (id, data) => {
+export const updateUser = async (id, req) => {
+  const validated = validate(updateUserSchema, req);
+
   const {
     fullname,
     username,
@@ -63,7 +66,7 @@ export const updateUser = async (id, data) => {
     address,
     phone_number,
     age,
-  } = data;
+  } = validated;
 
   const [result] = await pool.query(
     `UPDATE users 
